@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import { MdAdd } from 'react-icons/md';
+import { useTodoDispatch, useTodoNextId } from '../context/ToDoProvider';
 
 const CircleButton = styled.button`
     background: #38d9a9;
@@ -47,11 +48,23 @@ const CircleButton = styled.button`
 
 `
 
+const slideUp = keyframes`
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+`;
+
 const InsertFormPositioner = styled.div `
     width: 100%;
     bottom: 0;
     left: 0;
     position: absolute;
+    animation-duration: 0.25s;
+    animation-timing-function: ease-out;
+    animation-name: ${slideUp};
 `
 const InsertForm = styled.form`
     background: #f8f9fa;
@@ -72,17 +85,40 @@ const Input = styled.input `
     box-sizing: border-box;
 `;
 
-export default function TodoCreate() {
+function TodoCreate() {
 
     const [open, setOpen] = useState(false);
+    const [value, setValue] = useState('')
+    const dispatch = useTodoDispatch();
+    const nextId = useTodoNextId();
+    
+    const onChange = e => setValue(e.target.value);
+    const onSubmit = e => {
+        e.preventDefault();
+        dispatch({
+            type: 'CREATE',
+            todo: {
+                id: nextId.current,
+                text: value,
+                done: false,
+            }
+            
+        })
+        setValue('');
+        setOpen(false);
+        nextId.current +=1;
+    }
     const onToggle = () => setOpen(!open);
-
     return (
         <>
             {open && (
                 <InsertFormPositioner>
-                    <InsertForm>
-                        <Input autoFocus placeholder='할 일을 입력바랍니다' />
+                    <InsertForm onSubmit={onSubmit}>
+                        <Input 
+                            onChange={onChange}
+                            value={value}
+                            placeholder='할 일을 입력바랍니다' 
+                        />
                     </InsertForm>
                 </InsertFormPositioner>
             )}
@@ -92,3 +128,5 @@ export default function TodoCreate() {
         </>
   )
 }
+
+export default TodoCreate;
